@@ -36,3 +36,29 @@ jobs:
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
           commit_message: "Update to ${{ steps.rpcver.outputs.version }}"
           force_push: true
+
+  deploy-intel-amt-activate:
+    name: Publish intel-amt-activate to AUR
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: ver
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Update PKGBUILD
+        run: |
+          sed -i "s/^pkgver=.*/pkgver=${{ steps.ver.outputs.version }}/" packaging/aur/intel-amt-activate/PKGBUILD
+          sed -i "s/^pkgrel=.*/pkgrel=1/" packaging/aur/intel-amt-activate/PKGBUILD
+
+      - name: Publish intel-amt-activate to AUR
+        uses: KSXGitHub/github-actions-deploy-aur@v3.0.1
+        with:
+          pkgname: intel-amt-activate
+          pkgbuild: packaging/aur/intel-amt-activate/PKGBUILD
+          commit_username: 88plug
+          commit_email: andrew@88plug.com
+          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          commit_message: "Update to ${{ steps.ver.outputs.version }}"
+          force_push: true
