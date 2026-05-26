@@ -14,6 +14,32 @@ set -euo pipefail
 
 PW_FILE="${HOME}/.amt-mebx-password.txt"
 LOG_FILE="/tmp/amt-activate.log"
+VERSION="0.1.1"
+
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+    cat <<EOF
+amt-activate ${VERSION} — Activate Intel AMT in Client Control Mode from Linux
+
+Usage: sudo amt-activate
+
+No flags. The script is interactive — it will:
+  1. Check /dev/mei0 and rpc binary
+  2. Run 'rpc amtinfo' to confirm pre-provisioning state
+  3. Generate or reuse password at ~/.amt-mebx-password.txt
+  4. Run 'rpc activate -local -ccm' and tee output to ${LOG_FILE}
+  5. Verify activation and report AMT IP
+
+Docs:    https://github.com/88plug/amt-activate-linux
+Wiki:    https://github.com/88plug/amt-activate-linux/wiki
+Issues:  https://github.com/88plug/amt-activate-linux/issues
+EOF
+    exit 0
+fi
+
+if [[ "${1:-}" == "--version" || "${1:-}" == "-v" ]]; then
+    echo "amt-activate ${VERSION}"
+    exit 0
+fi
 
 RED=$'\e[31m' GRN=$'\e[32m' YLW=$'\e[33m' RST=$'\e[0m'
 err()  { echo "${RED}ERROR:${RST} $*" >&2; exit 1; }
