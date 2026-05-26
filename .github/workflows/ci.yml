@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  shellcheck:
+    name: Shellcheck activation script
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint scripts
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: ./scripts
+          severity: warning
+
+  pkgbuild-lint:
+    name: Lint PKGBUILDs in Arch container
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install lint tools
+        run: pacman -Sy --noconfirm namcap base-devel
+
+      - name: Create build user (makepkg refuses to run as root)
+        run: |
+          useradd -m builder
+          chown -R builder .
+
+      - name: Validate rpc-go-bin PKGBUILD
+        run: |
+          cd packaging/aur/rpc-go-bin
+          su builder -c 'makepkg --printsrcinfo' > /tmp/srcinfo-actual
+          diff -u .SRCINFO /tmp/srcinfo-actual || { echo "::error::.SRCINFO drift — regenerate with makepkg --printsrcinfo > .SRCINFO"; exit 1; }
+          namcap PKGBUILD || true
+
+      - name: Validate intel-amt-activate PKGBUILD
+        run: |
+          cd packaging/aur/intel-amt-activate
+          su builder -c 'makepkg --printsrcinfo' > /tmp/srcinfo-actual
+          diff -u .SRCINFO /tmp/srcinfo-actual || { echo "::error::.SRCINFO drift — regenerate with makepkg --printsrcinfo > .SRCINFO"; exit 1; }
+          namcap PKGBUILD || true
