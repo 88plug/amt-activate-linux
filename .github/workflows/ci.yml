@@ -33,13 +33,6 @@ jobs:
           useradd -m builder
           chown -R builder .
 
-      - name: Validate rpc-go-bin PKGBUILD
-        run: |
-          cd packaging/aur/rpc-go-bin
-          su builder -c 'makepkg --printsrcinfo' > /tmp/srcinfo-actual
-          diff -u .SRCINFO /tmp/srcinfo-actual || { echo "::error::.SRCINFO drift — regenerate with makepkg --printsrcinfo > .SRCINFO"; exit 1; }
-          namcap PKGBUILD || true
-
       - name: Validate intel-amt-activate PKGBUILD
         run: |
           cd packaging/aur/intel-amt-activate

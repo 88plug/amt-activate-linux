@@ -4,8 +4,8 @@
 
 One command. ~40 seconds on CSME 16.1+. Confirmed working on Lenovo ThinkStation P360 Ultra (Raptor Lake, CSME 16.1.27) from factory pre-provisioning state with zero prior BIOS interaction.
 
-[![AUR rpc-go-bin](https://img.shields.io/aur/version/rpc-go-bin?label=AUR%20rpc-go-bin&style=flat-square)](https://aur.archlinux.org/packages/rpc-go-bin)
 [![AUR intel-amt-activate](https://img.shields.io/aur/version/intel-amt-activate?label=AUR%20intel-amt-activate&style=flat-square)](https://aur.archlinux.org/packages/intel-amt-activate)
+[![AUR rpc-go-bin](https://img.shields.io/aur/version/rpc-go-bin?label=AUR%20rpc-go-bin&style=flat-square)](https://github.com/88plug/rpc-go-bin)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
 
 ---
