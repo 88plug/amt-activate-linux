@@ -10,6 +10,8 @@ One command. ~40 seconds on CSME 16.1+. Confirmed working on Lenovo ThinkStation
 [![rpc-go-bin repo](https://img.shields.io/badge/repo-rpc--go--bin-181717?style=flat-square&logo=github)](https://github.com/88plug/rpc-go-bin)
 [![intel-amt-linux repo](https://img.shields.io/badge/repo-intel--amt--linux-181717?style=flat-square&logo=github)](https://github.com/88plug/intel-amt-linux)
 
+*Tested end-to-end: push to main → auto-tag → AUR publish ≤ 60s, fully PAT-free pipeline.*
+
 ---
 
 ## What this does
