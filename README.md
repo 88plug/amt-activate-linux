@@ -8,6 +8,7 @@ One command. ~40 seconds on CSME 16.1+. Confirmed working on Lenovo ThinkStation
 [![AUR rpc-go-bin](https://img.shields.io/aur/version/rpc-go-bin?label=AUR%20rpc-go-bin&style=flat-square)](https://github.com/88plug/rpc-go-bin)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
 [![rpc-go-bin repo](https://img.shields.io/badge/repo-rpc--go--bin-181717?style=flat-square&logo=github)](https://github.com/88plug/rpc-go-bin)
+[![intel-amt-linux repo](https://img.shields.io/badge/repo-intel--amt--linux-181717?style=flat-square&logo=github)](https://github.com/88plug/intel-amt-linux)
 
 ---
 
