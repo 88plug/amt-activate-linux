@@ -3,10 +3,7 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: monthly
+      interval: weekly
     labels: [dependencies, automerge]
     commit-message:
       prefix: "deps"
-    ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
