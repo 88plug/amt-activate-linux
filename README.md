@@ -51,6 +51,8 @@ sudo amt-activate
 
 That's it. Tool checks state, generates a strong password, activates, verifies. ~40-90 seconds total.
 
+If your BIOS ships with manageability disabled (e.g. ThinkStation P3 Ultra 30HA), `amt-activate` detects the firmware refusal, offers to stage the BIOS toggle from Linux, and installs a self-disabling systemd unit that finishes activation at the next boot — your only action is the reboot. Non-interactive environments: `sudo amt-activate --auto-resume` does the same without prompting.
+
 **Headless / automation note:** in sessions without a TTY (CI, agents, `ssh host cmd`), yay builds fine but its final `pacman -U` dies on the interactive sudo prompt. Build then install explicitly:
 
 ```bash
@@ -146,6 +148,8 @@ echo Enabled | sudo tee /sys/class/firmware-attributes/thinklmi/attributes/Manag
 ```
 
 The change is staged in NVRAM and takes effect at the **next POST** — running `rpc activate` before rebooting fails with `AMT_STATUS_NOT_PERMITTED` / `Error 4: AmtNotReady`. Reboot once, then activate. Still no BIOS menu visit required.
+
+`amt-activate` ≥ 0.2.0 automates this whole branch: on `AmtNotReady` it stages the toggle (tries `ManageabilityControl`, then `AMTControl`) and enables a one-shot `amt-autoactivate.service` that re-runs activation at boot with your saved password and disables itself on success.
 
 #### Dell
 
@@ -268,7 +272,7 @@ sudo rpc deactivate -local
 | Activation hangs 5-15 minutes | Expected on AMT 16.1.25 / AMT 18.x without LMS | Be patient. AMT 16.1.27 takes ~40s. AMT 18 may take 15 min per rpc-go #1119 |
 | Activation never completes on AMT 19+ | LME interface removed in CSME 19.x | Install LMS daemon: `yay -S intel-amt-linux` ships LMS in Docker |
 | `Execution timeout after 20s` × 3 then exit | AMT not in pre-provisioning, BIOS has AMT disabled, or OEM-preset MEBx password | Check `rpc amtinfo`; reset BIOS / Unconfigure AMT if MEBx is locked |
-| `AMT_STATUS_NOT_PERMITTED` / `Error 4: AmtNotReady` on activate | Manageability disabled in BIOS — `rpc amtinfo` shows `Operational State: disabled`. ThinkStation P3 Ultra (30HA) ships this way from factory | Stage the BIOS toggle from Linux (Lenovo `think-lmi` / Dell `cctk`, see vendor table), reboot once, re-run `rpc activate -local -ccm` |
+| `AMT_STATUS_NOT_PERMITTED` / `Error 4: AmtNotReady` on activate | Manageability disabled in BIOS — `rpc amtinfo` shows `Operational State: disabled`. ThinkStation P3 Ultra (30HA) ships this way from factory | `amt-activate` ≥ 0.2.0 offers to fix this automatically (stage toggle + resume unit + reboot). Manual: stage the BIOS toggle from Linux (Lenovo `think-lmi` / Dell `cctk`, see vendor table), reboot once, re-run `rpc activate -local -ccm` |
 | IP stays `0.0.0.0` after activation | DHCP not yet leased | Wait 30-60s, re-run `rpc amtinfo`. AMT NIC requests DHCP after CCM transition completes |
 | `401 Unauthorized` after activation | Known WiFi/802.1x sync bug on certain firmware | rpc-go #1310 — open issue as of May 2026 |
 | `wsmancli`/`openwsman` build fails on Arch | Upstream openwsman is dead since 2019; Ruby rdoc build crash | Use `rpc-go-bin` instead; do not install wsmancli on Arch |
