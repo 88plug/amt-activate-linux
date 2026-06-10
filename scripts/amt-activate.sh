@@ -102,6 +102,14 @@ echo ""
 
 if grep -q "Device activated in Client Control Mode" "$LOG_FILE"; then
     info "Activation successful."
+elif grep -qE "AMT_STATUS_NOT_PERMITTED|AmtNotReady" "$LOG_FILE"; then
+    warn "Firmware refused activation: manageability is disabled in BIOS."
+    echo "  Stage the toggle from Linux (no BIOS menu needed), reboot once, re-run:"
+    echo "    Lenovo:  ls /sys/class/firmware-attributes/thinklmi/attributes/ | grep -iE 'amt|manage'"
+    echo "             echo Enabled | sudo tee /sys/class/firmware-attributes/thinklmi/attributes/ManageabilityControl/current_value"
+    echo "    Dell:    sudo cctk --AdvancedAmt=Enable"
+    echo "  The setting takes effect at next POST."
+    exit 1
 else
     err "Activation may have failed — check $LOG_FILE"
 fi
