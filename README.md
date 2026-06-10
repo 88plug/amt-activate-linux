@@ -51,6 +51,13 @@ sudo amt-activate
 
 That's it. Tool checks state, generates a strong password, activates, verifies. ~40-90 seconds total.
 
+**Headless / automation note:** in sessions without a TTY (CI, agents, `ssh host cmd`), yay builds fine but its final `pacman -U` dies on the interactive sudo prompt. Build then install explicitly:
+
+```bash
+yay -S --noconfirm intel-amt-activate || true   # builds even if install step fails
+sudo pacman -U --noconfirm ~/.cache/yay/{rpc-go-bin,intel-amt-activate}/*.pkg.tar.zst
+```
+
 ---
 
 ## Manual flow (any distro)
@@ -128,10 +135,17 @@ After activation, `rpc amtinfo` shows `DHCP Mode` flipping from `passive` → `a
 | **ThinkPad** | T480, T490/T490s, T14 Gen 1–5, T16, X1 Carbon Gen 6+, X280/X390/X13, P14s/P15s/P16s | ✅ vPro Enterprise SKUs only | i5/i7-vPro suffix required; vPro Essentials SKUs lack AMT |
 | **ThinkPad L-series** | L13, L14, L15 | ❌ | vPro Essentials only — no AMT firmware |
 | **ThinkCentre** | M70q/s/t, M80q/s/t, M90q/s/t Gen 1–6, M90n Nano | ✅ | M75/M9 AMD variants excluded |
-| **ThinkStation** | P330, P340, P350, P360, P3 Ultra/Tower/Tiny, P520, P720 | ✅ | **P360/P3 Ultra confirmed in this repo** |
+| **ThinkStation** | P330, P340, P350, P360, P3 Ultra/Tower/Tiny, P520, P720 | ✅ | **P360/P3 Ultra confirmed in this repo**; P3 Ultra (30HA) ships `ManageabilityControl=Disabled` from factory — enable + one reboot first (see below) |
 | **ThinkStation P620** | (AMD Threadripper Pro) | ❌ | AMD platform — no AMT |
 
-**Lenovo BIOS toggle from Linux:** `think-lmi` exposes `/sys/class/firmware-attributes/thinklmi/attributes/AMTControl` on T14 Gen 2+, X1 Gen 9+, M90q Gen 2+, P3 Ultra. Set to `Enable`, save, then `rpc activate`. No BIOS visit required if your platform exposes this attribute.
+**Lenovo BIOS toggle from Linux:** `think-lmi` exposes the AMT toggle under `/sys/class/firmware-attributes/thinklmi/attributes/` — the attribute **name varies by platform**: `AMTControl` on T14 Gen 2+, X1 Gen 9+, M90q Gen 2+; `ManageabilityControl` on ThinkStation P3 Ultra (30HA, values `Disabled`/`Enabled`). Find yours, then stage it:
+
+```bash
+ls /sys/class/firmware-attributes/thinklmi/attributes/ | grep -iE 'amt|manage'
+echo Enabled | sudo tee /sys/class/firmware-attributes/thinklmi/attributes/ManageabilityControl/current_value
+```
+
+The change is staged in NVRAM and takes effect at the **next POST** — running `rpc activate` before rebooting fails with `AMT_STATUS_NOT_PERMITTED` / `Error 4: AmtNotReady`. Reboot once, then activate. Still no BIOS menu visit required.
 
 #### Dell
 
@@ -254,6 +268,7 @@ sudo rpc deactivate -local
 | Activation hangs 5-15 minutes | Expected on AMT 16.1.25 / AMT 18.x without LMS | Be patient. AMT 16.1.27 takes ~40s. AMT 18 may take 15 min per rpc-go #1119 |
 | Activation never completes on AMT 19+ | LME interface removed in CSME 19.x | Install LMS daemon: `yay -S intel-amt-linux` ships LMS in Docker |
 | `Execution timeout after 20s` × 3 then exit | AMT not in pre-provisioning, BIOS has AMT disabled, or OEM-preset MEBx password | Check `rpc amtinfo`; reset BIOS / Unconfigure AMT if MEBx is locked |
+| `AMT_STATUS_NOT_PERMITTED` / `Error 4: AmtNotReady` on activate | Manageability disabled in BIOS — `rpc amtinfo` shows `Operational State: disabled`. ThinkStation P3 Ultra (30HA) ships this way from factory | Stage the BIOS toggle from Linux (Lenovo `think-lmi` / Dell `cctk`, see vendor table), reboot once, re-run `rpc activate -local -ccm` |
 | IP stays `0.0.0.0` after activation | DHCP not yet leased | Wait 30-60s, re-run `rpc amtinfo`. AMT NIC requests DHCP after CCM transition completes |
 | `401 Unauthorized` after activation | Known WiFi/802.1x sync bug on certain firmware | rpc-go #1310 — open issue as of May 2026 |
 | `wsmancli`/`openwsman` build fails on Arch | Upstream openwsman is dead since 2019; Ruby rdoc build crash | Use `rpc-go-bin` instead; do not install wsmancli on Arch |
