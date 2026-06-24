@@ -11,7 +11,7 @@ jobs:
     name: Shellcheck activation script
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Lint scripts
         uses: ludeeus/action-shellcheck@master
         with:
@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     container: archlinux:latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Install lint tools
         run: pacman -Sy --noconfirm namcap base-devel
